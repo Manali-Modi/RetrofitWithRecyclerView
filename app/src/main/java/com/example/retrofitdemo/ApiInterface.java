@@ -10,5 +10,5 @@ public interface ApiInterface {
 
     //define all api here with response call
     @GET("users")
-    Call<Users> getUserInfo(@Query("page")int p_no);
+    Call<Users> getUserInfo(@Query("page")int page_no);
 }

@@ -13,7 +13,6 @@ public class Users {
     public List<Data> getData() {
         return data;
     }
-
     public void setData(List<Data> data) {
         this.data = data;
     }
