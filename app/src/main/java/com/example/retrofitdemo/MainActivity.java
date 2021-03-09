@@ -6,7 +6,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.retrofitdemo.Model.Data;
-import com.example.retrofitdemo.Model.apiResponse;
+import com.example.retrofitdemo.Model.Users;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,11 +40,11 @@ public class MainActivity extends AppCompatActivity {
             int count = cursor.getCount();
             if (count == 0) {
                 Toast.makeText(MainActivity.this, "From API", Toast.LENGTH_SHORT).show();
-                Call<apiResponse> call = ApiClient.getInstance().getApi().getUserInfo();
+                Call<Users> call = ApiClient.getInstance().getApi().getUserInfo(2);
 
-                call.enqueue(new Callback<apiResponse>() {
+                call.enqueue(new Callback<Users>() {
                     @Override
-                    public void onResponse(Call<apiResponse> call, Response<apiResponse> response) {
+                    public void onResponse(Call<Users> call, Response<Users> response) {
                         if (response.isSuccessful()) {
                             allData.addAll(response.body().getData());
                             setUserAdapter(allData);
@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onFailure(Call<apiResponse> call, Throwable t) {
+                    public void onFailure(Call<Users> call, Throwable t) {
                         Log.d("error", t.getMessage());
                     }
                 });
