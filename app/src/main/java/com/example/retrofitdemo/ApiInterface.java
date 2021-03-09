@@ -1,6 +1,6 @@
 package com.example.retrofitdemo;
 
-import com.example.retrofitdemo.Model.Users;
+import com.example.retrofitdemo.model.Users;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

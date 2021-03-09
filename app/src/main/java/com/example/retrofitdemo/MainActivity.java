@@ -5,8 +5,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.retrofitdemo.Model.Data;
-import com.example.retrofitdemo.Model.Users;
+import com.example.retrofitdemo.model.Data;
+import com.example.retrofitdemo.model.Users;
 
 import java.util.ArrayList;
 import java.util.List;

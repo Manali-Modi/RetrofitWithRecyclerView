@@ -1,4 +1,4 @@
-package com.example.retrofitdemo.Model;
+package com.example.retrofitdemo.model;
 
 import java.util.List;
 

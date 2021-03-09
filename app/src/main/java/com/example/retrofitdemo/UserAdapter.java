@@ -2,27 +2,23 @@ package com.example.retrofitdemo;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.net.Uri;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-import com.example.retrofitdemo.Model.Data;
+import com.example.retrofitdemo.model.Data;
+import com.example.retrofitdemo.databinding.UserRowBinding;
 
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserHolder> {
 
     List<Data> dataList;
     Context ctx;
-    String userId, email, firstName, lastName, avatar;
 
     public UserAdapter(List<Data> dataList, Context ctx) {
         this.dataList = dataList;
@@ -39,9 +35,10 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserHolder> {
     @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull UserAdapter.UserHolder holder, int position) {
-        holder.txtName.setText(dataList.get(position).getFirstName() + " " + dataList.get(position).getLastName());
-        holder.txtEmailId.setText(dataList.get(position).getEmail() + "-" +dataList.get(position).getId());
-        Glide.with(ctx).load(Uri.parse(dataList.get(position).getAvatar())).into(holder.imgAvatar);
+        Data data = dataList.get(position);
+        holder.getBinding().setVariable(com.example.retrofitdemo.BR.user_data,data);
+        holder.getBinding().setAvatar(data.getAvatar());
+        holder.getBinding().executePendingBindings();
     }
 
     @Override
@@ -50,15 +47,15 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserHolder> {
     }
 
     public static class UserHolder extends RecyclerView.ViewHolder{
-
-        TextView txtName, txtEmailId;
-        ImageView imgAvatar;
+        private final UserRowBinding binding;
 
         public UserHolder(@NonNull View itemView) {
             super(itemView);
-            txtName = itemView.findViewById(R.id.txt_name);
-            txtEmailId = itemView.findViewById(R.id.txt_email_id);
-            imgAvatar = itemView.findViewById(R.id.img_avatar);
+            binding = DataBindingUtil.bind(itemView);
+        }
+
+        public UserRowBinding getBinding() {
+            return binding;
         }
     }
 }
