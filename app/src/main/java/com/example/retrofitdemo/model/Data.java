@@ -7,16 +7,30 @@ import com.bumptech.glide.Glide;
 import com.google.gson.annotations.SerializedName;
 
 import androidx.databinding.BindingAdapter;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
+@Entity(tableName = "userData")
 public class Data {
 
-    //annotation is necessary in case of variable name is diff from the json output
+    //annotation @SerializedName is necessary in case of variable name is diff from the json output
+    @PrimaryKey(autoGenerate = true)
+    private int _id;
+
+    @ColumnInfo(name = "user_id")
     private String id;
+
+    @ColumnInfo(name = "email")
     private String email;
-    @SerializedName("first_name")
-    private String firstName;
-    @SerializedName("last_name")
-    private String lastName;
+
+    @ColumnInfo(name = "first_name")
+    @SerializedName("first_name") private String firstName;
+
+    @ColumnInfo(name = "last_name")
+    @SerializedName("last_name") private String lastName;
+
+    @ColumnInfo(name = "avatar")
     private String avatar;
 
     public Data(String id, String email, String firstName, String lastName, String avatar) {
@@ -25,6 +39,14 @@ public class Data {
         this.firstName = firstName;
         this.lastName = lastName;
         this.avatar = avatar;
+    }
+
+    public int get_id() {
+        return _id;
+    }
+
+    public void set_id(int _id) {
+        this._id = _id;
     }
 
     public String getId() {
