@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     UserAdapter adapter;
     AppDatabase appDatabase;
     ProgressBar progressBar;
-    int page=1, limit;
+    int page=1, limit=2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(Call<Users> call, Response<Users> response) {
                         if (response.isSuccessful()) {
-                            limit = response.body().getTotal_pages();
                             allData.addAll(response.body().getData());
                             setUserAdapter(allData);
                             for (int i = 0; i < allData.size(); i++) {
