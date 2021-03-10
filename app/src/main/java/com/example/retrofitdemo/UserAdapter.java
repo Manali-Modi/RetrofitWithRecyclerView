@@ -58,4 +58,11 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserHolder> {
             return binding;
         }
     }
+
+    public void addData(List<Data> listOfData){
+        for(Data data:listOfData){
+            dataList.add(data);
+        }
+        notifyDataSetChanged();
+    }
 }

@@ -3,6 +3,8 @@ package com.example.retrofitdemo;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.retrofitdemo.model.Data;
@@ -11,6 +13,7 @@ import com.example.retrofitdemo.model.Users;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
     List<Data> allData;
     UserAdapter adapter;
     AppDatabase appDatabase;
+    ProgressBar progressBar;
+    int page=1, limit=2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,13 +39,15 @@ public class MainActivity extends AppCompatActivity {
         recUsers.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         allData = new ArrayList<>();
         appDatabase = new AppDatabase(this);
+        progressBar = findViewById(R.id.progress_bar);
+        progressBar.setVisibility(View.VISIBLE);
 
         Cursor cursor = appDatabase.getDataFromDB();
         if (cursor != null) {
             int count = cursor.getCount();
             if (count == 0) {
                 Toast.makeText(MainActivity.this, "From API", Toast.LENGTH_SHORT).show();
-                Call<Users> call = ApiClient.getInstance().getApi().getUserInfo(2);
+                Call<Users> call = ApiClient.getInstance().getApi().getUserInfo(page,limit);
 
                 call.enqueue(new Callback<Users>() {
                     @Override
@@ -52,6 +59,20 @@ public class MainActivity extends AppCompatActivity {
                                 appDatabase.insertData(allData.get(i).getId(), allData.get(i).getEmail(),
                                         allData.get(i).getFirstName(), allData.get(i).getLastName(), allData.get(i).getAvatar());
                             }
+                            progressBar.setVisibility(View.INVISIBLE);
+
+                            recUsers.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                                @Override
+                                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                                    super.onScrolled(recyclerView, dx, dy);
+                                    if(page<limit){
+                                        progressBar.setVisibility(View.VISIBLE);
+                                        page++;
+                                        Toast.makeText(MainActivity.this, "performPagination", Toast.LENGTH_SHORT).show();
+                                        performPagination();
+                                    }
+                                }
+                            });
                         }
                     }
                     @Override
@@ -71,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
                     Data data = new Data(userId, email, firstName, lastName, avatar);
                     allData.add(data);
                     setUserAdapter(allData);
+                    progressBar.setVisibility(View.INVISIBLE);
                 }
             }
         }
@@ -80,5 +102,29 @@ public class MainActivity extends AppCompatActivity {
     private void setUserAdapter(List<Data> dataList) {
         adapter = new UserAdapter(dataList, MainActivity.this);
         recUsers.setAdapter(adapter);
+    }
+
+    private void performPagination() {
+        Call<Users> call = ApiClient.getInstance().getApi().getUserInfo(page, limit);
+
+        call.enqueue(new Callback<Users>() {
+            @Override
+            public void onResponse(Call<Users> call, Response<Users> response) {
+                if (response.isSuccessful()) {
+                    List<Data> anotherData = response.body().getData();
+                    adapter.addData(anotherData);
+                    for (int i = 0; i < anotherData.size(); i++) {
+                        appDatabase.insertData(anotherData.get(i).getId(), anotherData.get(i).getEmail(),
+                                anotherData.get(i).getFirstName(), anotherData.get(i).getLastName(), anotherData.get(i).getAvatar());
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Users> call, Throwable t) {
+                Log.d("error", t.getMessage());
+            }
+        });
+        progressBar.setVisibility(View.INVISIBLE);
     }
 }
