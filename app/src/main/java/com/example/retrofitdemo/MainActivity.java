@@ -1,3 +1,4 @@
+
 package com.example.retrofitdemo;
 
 import android.database.Cursor;
@@ -26,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView recUsers;
     List<Data> allData;
     UserAdapter adapter;
-    AppDatabase appDatabase;
+    AppRoomDatabase appRoomDatabase;
     ProgressBar progressBar;
     int page=1, limit;
 
@@ -38,64 +39,53 @@ public class MainActivity extends AppCompatActivity {
         recUsers = findViewById(R.id.rec_users);
         recUsers.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         allData = new ArrayList<>();
-        appDatabase = new AppDatabase(this);
+        appRoomDatabase = AppRoomDatabase.getInstance(this);
         progressBar = findViewById(R.id.progress_bar);
         progressBar.setVisibility(View.VISIBLE);
 
-        Cursor cursor = appDatabase.getDataFromDB();
-        if (cursor != null) {
-            int count = cursor.getCount();
-            if (count == 0) {
-                Toast.makeText(MainActivity.this, "From API", Toast.LENGTH_SHORT).show();
-                Call<Users> call = ApiClient.getInstance().getApi().getUserInfo(page,limit);
-
-                call.enqueue(new Callback<Users>() {
-                    @Override
-                    public void onResponse(Call<Users> call, Response<Users> response) {
-                        if (response.isSuccessful()) {
-                            limit = response.body().getTotal_pages();
-                            allData.addAll(response.body().getData());
-                            setUserAdapter(allData);
-                            for (int i = 0; i < allData.size(); i++) {
-                                appDatabase.insertData(allData.get(i).getId(), allData.get(i).getEmail(),
-                                        allData.get(i).getFirstName(), allData.get(i).getLastName(), allData.get(i).getAvatar());
-                            }
-                            progressBar.setVisibility(View.INVISIBLE);
-
-                            recUsers.addOnScrollListener(new RecyclerView.OnScrollListener() {
-                                @Override
-                                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                                    super.onScrolled(recyclerView, dx, dy);
-                                    if(page<limit){
-                                        progressBar.setVisibility(View.VISIBLE);
-                                        page++;
-                                        Toast.makeText(MainActivity.this, "performPagination", Toast.LENGTH_SHORT).show();
-                                        performPagination();
-                                    }
-                                }
-                            });
+        if(appRoomDatabase.daoInterface().fetchUserData().toString().equals("[]")){
+            Toast.makeText(MainActivity.this, "From API", Toast.LENGTH_SHORT).show();
+            Call<Users> call = ApiClient.getInstance().getApi().getUserInfo(page, limit);
+            call.enqueue(new Callback<Users>() {
+                @Override
+                public void onResponse(Call<Users> call, Response<Users> response) {
+                    if(response.isSuccessful()){
+                        limit = response.body().getTotal_pages();
+                        allData.addAll(response.body().getData());
+                        setUserAdapter(allData);
+                        for(int i=0; i<allData.size(); i++){
+                            Data data = allData.get(i);
+                            Log.d("room",data.toString());
+                            appRoomDatabase.daoInterface().insertUserData(data);
                         }
-                    }
-                    @Override
-                    public void onFailure(Call<Users> call, Throwable t) {
-                        Log.d("error", t.getMessage());
-                    }
-                });
-            } else {
-                Toast.makeText(MainActivity.this, "From database", Toast.LENGTH_SHORT).show();
-                while (cursor.moveToNext()) {
-                    String userId = cursor.getString(cursor.getColumnIndex("user_id"));
-                    String email = cursor.getString(cursor.getColumnIndex("email"));
-                    String firstName = cursor.getString(cursor.getColumnIndex("first_name"));
-                    String lastName = cursor.getString(cursor.getColumnIndex("last_name"));
-                    String avatar = cursor.getString(cursor.getColumnIndex("avatar"));
+                        progressBar.setVisibility(View.INVISIBLE);
 
-                    Data data = new Data(userId, email, firstName, lastName, avatar);
-                    allData.add(data);
-                    setUserAdapter(allData);
-                    progressBar.setVisibility(View.INVISIBLE);
+                        recUsers.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                            @Override
+                            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                                super.onScrolled(recyclerView, dx, dy);
+                                if(page<limit){
+                                    progressBar.setVisibility(View.VISIBLE);
+                                    page++;
+                                    Toast.makeText(MainActivity.this, "performPagination", Toast.LENGTH_SHORT).show();
+                                    performPagination();
+                                }
+                            }
+                        });
+                    }
                 }
-            }
+
+                @Override
+                public void onFailure(Call<Users> call, Throwable t) {
+
+                }
+            });
+        }
+        else {
+            Toast.makeText(MainActivity.this, "From Room db", Toast.LENGTH_SHORT).show();
+            allData.addAll(appRoomDatabase.daoInterface().fetchUserData());
+            setUserAdapter(allData);
+            progressBar.setVisibility(View.INVISIBLE);
         }
 
     }
@@ -114,9 +104,9 @@ public class MainActivity extends AppCompatActivity {
                 if (response.isSuccessful()) {
                     List<Data> anotherData = response.body().getData();
                     adapter.addData(anotherData);
-                    for (int i = 0; i < anotherData.size(); i++) {
-                        appDatabase.insertData(anotherData.get(i).getId(), anotherData.get(i).getEmail(),
-                                anotherData.get(i).getFirstName(), anotherData.get(i).getLastName(), anotherData.get(i).getAvatar());
+                    for(int i=0; i<anotherData.size(); i++){
+                        Data data = anotherData.get(i);
+                        appRoomDatabase.daoInterface().insertUserData(data);
                     }
                 }
             }
